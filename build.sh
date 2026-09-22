@@ -39,7 +39,7 @@ build_kernel(){
     # make "${BUILD_OPTIONS[@]}" clean && make "${BUILD_OPTIONS[@]}" mrproper
     
     # make default configuration.
-    make "${BUILD_OPTIONS[@]}" gto_eur_open_defconfig
+    make "${BUILD_OPTIONS[@]}" gto_eur_open_defconfig custom.config
 
     # menuconfig
     make "${BUILD_OPTIONS[@]}" menuconfig
