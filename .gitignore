@@ -1,5 +1,6 @@
 /out
 /dist
+/arch/arm64/configs/version.config
 *.orig
 *.patch
 *.rej
