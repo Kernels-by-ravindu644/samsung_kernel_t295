@@ -61,4 +61,37 @@ build_kernel(){
     cp "${KERNEL_ROOT}/out/arch/arm64/boot/Image" "${KERNEL_ROOT}/dist/Image"
 }
 
+build_boot(){
+    # unpack stock boot.img, swap in our kernel, repack
+    local work="${KERNEL_ROOT}/dist/boot_work"
+    rm -rf "${work}" && mkdir -p "${work}" && cd "${work}"
+    magiskboot unpack "${KERNEL_ROOT}/prebuilts/boot.img"
+    cp "${KERNEL_ROOT}/dist/Image" kernel
+    magiskboot repack "${KERNEL_ROOT}/prebuilts/boot.img" "${KERNEL_ROOT}/dist/boot.img"
+    cd "${KERNEL_ROOT}" && rm -rf "${work}"
+
+    # newer Wingtech bootloaders reject boot images without Samsung's SignerVer02
+    # block: insert it after SEANDROIDENFORCE and grow the AVB footer's image size
+    python3 - "${KERNEL_ROOT}/dist/boot.img" <<'EOF'
+import sys
+p = sys.argv[1]; d = bytearray(open(p, 'rb').read())
+assert d[-64:-60] == b'AVBf' and b'SignerVer02' not in d
+n = int.from_bytes(d[-52:-44], 'big')
+if d[n:n+16] == b'SEANDROIDENFORCE': n += 16
+assert d[n:n+512] == bytes(512)
+d[n:n+11] = b'SignerVer02'
+d[-52:-44] = (n + 512).to_bytes(8, 'big')
+open(p, 'wb').write(d)
+EOF
+}
+
+build_tar(){
+    cd "${KERNEL_ROOT}/dist"
+    tar -cvf "Droidspaces-Samsung-SM-T295-${BUILD_VERSION}.tar" boot.img && \
+        echo -e "\n[INFO]: TAR BUILT SUCCESSFULLY..!\n"
+    cd "${KERNEL_ROOT}"
+}
+
 build_kernel
+build_boot
+build_tar

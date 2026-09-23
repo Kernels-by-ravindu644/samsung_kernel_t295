@@ -4,3 +4,13 @@
 *.orig
 *.patch
 *.rej
+
+# magiskboot unpack/repack leftovers
+/header
+/kernel_dtb
+/ramdisk.cpio
+/second
+/dtb
+/recovery_dtbo
+/new-boot.img
+*.tar
