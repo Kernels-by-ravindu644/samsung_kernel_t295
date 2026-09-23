@@ -70,19 +70,8 @@ build_boot(){
     magiskboot repack "${KERNEL_ROOT}/prebuilts/boot.img" "${KERNEL_ROOT}/dist/boot.img"
     cd "${KERNEL_ROOT}" && rm -rf "${work}"
 
-    # newer Wingtech bootloaders reject boot images without Samsung's SignerVer02
-    # block: insert it after SEANDROIDENFORCE and grow the AVB footer's image size
-    python3 - "${KERNEL_ROOT}/dist/boot.img" <<'EOF'
-import sys
-p = sys.argv[1]; d = bytearray(open(p, 'rb').read())
-assert d[-64:-60] == b'AVBf' and b'SignerVer02' not in d
-n = int.from_bytes(d[-52:-44], 'big')
-if d[n:n+16] == b'SEANDROIDENFORCE': n += 16
-assert d[n:n+512] == bytes(512)
-d[n:n+11] = b'SignerVer02'
-d[-52:-44] = (n + 512).to_bytes(8, 'big')
-open(p, 'wb').write(d)
-EOF
+    # newer Wingtech bootloaders reject boot images without Samsung's SignerVer02 block
+    python3 "${KERNEL_ROOT}/fix_samsung_boot.py" "${KERNEL_ROOT}/dist/boot.img"
 }
 
 build_tar(){
