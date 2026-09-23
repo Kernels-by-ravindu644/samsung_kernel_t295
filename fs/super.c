@@ -1020,8 +1020,25 @@ struct dentry *mount_ns_option(struct file_system_type *fs_type,
 	if (IS_ERR(sb))
 		return ERR_CAST(sb);
 
-	if (!parse_options(data, get_pid_ns(sb->s_fs_info)))
+	/*
+	 * A new superblock owns a pid_namespace reference that proc_kill_sb()
+	 * drops; an existing one already holds it. Taking it unconditionally
+	 * leaked one reference per mount of an existing proc instance.
+	 */
+	if (!sb->s_root)
+		get_pid_ns(sb->s_fs_info);
+
+	/*
+	 * sget_userns() returned with s_umount held for write and an active
+	 * reference. Returning without releasing them left the superblock
+	 * locked forever, so every later mount/remount/umount of this proc
+	 * instance hung in D state (systemd mounts proc with hidepid=invisible,
+	 * which this kernel rejects).
+	 */
+	if (!parse_options(data, sb->s_fs_info)) {
+		deactivate_locked_super(sb);
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (!sb->s_root) {
 		int err;
