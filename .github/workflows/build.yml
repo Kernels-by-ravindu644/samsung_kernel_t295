@@ -1,0 +1,50 @@
+name: Build and Release Kernel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt update && sudo apt install -y \
+            build-essential bc bison flex patch pkg-config git curl tar xz-utils zip unzip \
+            cpio rsync kmod perl python3 python-is-python3 libssl-dev libelf-dev pahole \
+            libncurses-dev zlib1g-dev libyaml-dev lz4 zstd device-tree-compiler adb fastboot
+          # clang 10 from the Snapdragon LLVM toolchain still links against libtinfo.so.5, which noble dropped
+          sudo ln -s /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
+
+      - name: Build kernel
+        run: ./build.sh
+
+      - name: Set release tag
+        run: echo "RELEASE_TAG=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Droidspaces-Samsung-SM-T295-${{ env.RELEASE_TAG }}
+          path: dist/*.tar
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ env.RELEASE_TAG }}
+          name: "Kernel Release ${{ env.RELEASE_TAG }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "dist/*.tar"
+          allowUpdates: true
+          body: "Automated build of Droidspaces kernel for SM-T295.\nCommit: ${{ github.sha }}"

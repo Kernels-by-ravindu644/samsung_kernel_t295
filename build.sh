@@ -29,6 +29,7 @@ mkdir -p out dist
 # export toolchain path and core variables
 export PATH="${HOME}/toolchains/llvm-arm-toolchain-ship/10.0.9/bin:${PATH}"
 export KBUILD_BUILD_USER="@ravindu644"
+export MAGISKBOOT="${KERNEL_ROOT}/prebuilts/magiskboot"
 BUILD_CROSS_COMPILE="${HOME}/toolchains/aarch64-linux-android-4.9/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
 
 # download the toolchains if they aren't there yet
@@ -67,7 +68,7 @@ build_kernel(){
     make "${BUILD_OPTIONS[@]}" gto_eur_open_defconfig custom.config version.config droidspaces.config
 
     # menuconfig
-    make "${BUILD_OPTIONS[@]}" menuconfig
+    [ -t 0 ] && make "${BUILD_OPTIONS[@]}" menuconfig
 
     # Build the kernel
     make "${BUILD_OPTIONS[@]}" || exit 1
@@ -80,9 +81,9 @@ build_boot(){
     # unpack stock boot.img, swap in our kernel, repack
     local work="${KERNEL_ROOT}/dist/boot_work"
     rm -rf "${work}" && mkdir -p "${work}" && cd "${work}"
-    magiskboot unpack "${KERNEL_ROOT}/prebuilts/boot.img"
+    "${MAGISKBOOT}" unpack "${KERNEL_ROOT}/prebuilts/boot.img"
     cp "${KERNEL_ROOT}/dist/Image" kernel
-    magiskboot repack "${KERNEL_ROOT}/prebuilts/boot.img" "${KERNEL_ROOT}/dist/boot.img"
+    "${MAGISKBOOT}" repack "${KERNEL_ROOT}/prebuilts/boot.img" "${KERNEL_ROOT}/dist/boot.img"
     cd "${KERNEL_ROOT}" && rm -rf "${work}"
 
     # newer Wingtech bootloaders reject boot images without Samsung's SignerVer02 block
