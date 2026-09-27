@@ -31,6 +31,21 @@ export PATH="${HOME}/toolchains/llvm-arm-toolchain-ship/10.0.9/bin:${PATH}"
 export KBUILD_BUILD_USER="@ravindu644"
 BUILD_CROSS_COMPILE="${HOME}/toolchains/aarch64-linux-android-4.9/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
 
+# download the toolchains if they aren't there yet
+download_toolchains(){
+    local base="https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains"
+    if [ ! -x "${HOME}/toolchains/llvm-arm-toolchain-ship/10.0.9/bin/clang" ]; then
+        echo "[INFO]: downloading llvm-arm-toolchain-ship-10.0.9..."
+        mkdir -p "${HOME}/toolchains"
+        wget -q --show-progress -O- "${base}/llvm-arm-toolchain-ship-10.0.9.tar.gz" | tar -xz -C "${HOME}/toolchains"
+    fi
+    if [ ! -x "${BUILD_CROSS_COMPILE}gcc" ]; then
+        echo "[INFO]: downloading aarch64-linux-android-4.9..."
+        mkdir -p "${HOME}/toolchains/aarch64-linux-android-4.9"
+        wget -q --show-progress -O- "${base}/aarch64-linux-android-4.9.tar.gz" | tar -xz -C "${HOME}/toolchains/aarch64-linux-android-4.9"
+    fi
+}
+
 # build options for the kernel
 BUILD_OPTIONS=(
     -C "${KERNEL_ROOT}"
@@ -81,6 +96,7 @@ build_tar(){
     cd "${KERNEL_ROOT}"
 }
 
+download_toolchains
 build_kernel
 build_boot
 build_tar
