@@ -92,7 +92,7 @@ build_boot(){
 
 build_tar(){
     cd "${KERNEL_ROOT}/dist"
-    tar -cvf "Droidspaces-Samsung-SM-T295-${BUILD_VERSION}.tar" boot.img && \
+    tar -cvf "Droidspaces-BakaSU-Samsung-SM-T295-${BUILD_VERSION}.tar" boot.img && \
         echo -e "\n[INFO]: TAR BUILT SUCCESSFULLY..!\n"
     cd "${KERNEL_ROOT}"
 }

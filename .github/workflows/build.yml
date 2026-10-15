@@ -36,7 +36,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Droidspaces-Samsung-SM-T295-${{ env.RELEASE_TAG }}
+          name: Droidspaces-BakaSU-Samsung-SM-T295-${{ env.RELEASE_TAG }}
           path: dist/*.tar
 
       - name: Create release
@@ -47,4 +47,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: "dist/*.tar"
           allowUpdates: true
-          body: "Automated build of Droidspaces kernel for SM-T295.\nCommit: ${{ github.sha }}"
+          body: "Automated build of Droidspaces + BakaSU kernel for SM-T295, from ${{ github.repository }}.\nCommit: ${{ github.sha }}\n\nFlash the tar in Odin's AP slot.\n\nKernelSU manager (BakaSU v4.2.0-rc3, matches the built-in driver): https://github.com/Baka-SU/BakaSU/releases/download/v4.2.0-rc3/ReSukiSU_v4.2.0-rc3_35171-armeabi-v7a-release.apk"
