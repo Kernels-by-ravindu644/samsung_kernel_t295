@@ -191,3 +191,6 @@ obj-y				+= debug/
 
 # CONFIG_SS_VIBRATOR
 obj-y				+= motor/
+
+# KernelSU
+obj-$(CONFIG_KSU) += kernelsu/
